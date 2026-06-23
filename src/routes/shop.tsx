@@ -76,7 +76,7 @@ function ShopPage() {
   });
 
   function setFilter(key: keyof Search, value?: string) {
-    navigate({ search: (prev) => ({ ...prev, [key]: value || undefined }) });
+    navigate({ search: (prev: Search) => ({ ...prev, [key]: value || undefined }) });
   }
 
   const activeFilters = useMemo(
