@@ -28,6 +28,7 @@ function CheckoutPage() {
   const cart = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const submitOrder = useServerFn(placeOrder);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     email: user?.email ?? "",
