@@ -47,11 +47,11 @@ export const placeOrder = createServerFn({ method: "POST" })
     const ids = Array.from(new Set(data.items.map((i) => i.product_id)));
     const { data: products, error: pErr } = await supabaseAdmin
       .from("products")
-      .select("id, name, slug, price, sale_price, stock, is_active")
+      .select("id, name, slug, price, stock_qty, is_active")
       .in("id", ids);
     if (pErr) throw pErr;
 
-    const byId = new Map(products?.map((p) => [p.id, p]));
+    const byId = new Map((products ?? []).map((p) => [p.id, p]));
     let subtotal = 0;
     const orderItems: Array<{
       product_id: string;
@@ -65,10 +65,10 @@ export const placeOrder = createServerFn({ method: "POST" })
     for (const line of data.items) {
       const p = byId.get(line.product_id);
       if (!p || !p.is_active) throw new Error(`Product unavailable: ${line.product_id}`);
-      if (p.stock !== null && p.stock < line.qty) {
+      if (p.stock_qty !== null && p.stock_qty < line.qty) {
         throw new Error(`Insufficient stock for ${p.name}`);
       }
-      const unit = Number(p.sale_price ?? p.price);
+      const unit = Number(p.price);
       if (!Number.isFinite(unit) || unit <= 0) {
         throw new Error(`Invalid price for ${p.name}`);
       }
