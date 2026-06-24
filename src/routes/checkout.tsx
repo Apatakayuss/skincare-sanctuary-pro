@@ -1,11 +1,12 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/SiteLayout";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { formatNaira } from "@/lib/format";
+import { placeOrder } from "@/lib/checkout.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/checkout")({
@@ -27,6 +28,7 @@ function CheckoutPage() {
   const cart = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const submitOrder = useServerFn(placeOrder);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     email: user?.email ?? "",
@@ -51,7 +53,7 @@ function CheckoutPage() {
     );
   }
 
-  async function placeOrder(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
@@ -60,45 +62,23 @@ function CheckoutPage() {
     }
     setSubmitting(true);
     try {
-      const { data: order, error } = await supabase
-        .from("orders")
-        .insert({
-          user_id: user?.id ?? null,
+      const result = await submitOrder({
+        data: {
+          items: cart.items.map((i) => ({ product_id: i.productId, qty: i.qty })),
           guest_email: user ? null : parsed.data.email,
-          status: "pending",
-          subtotal: cart.subtotal,
-          shipping_total: shipping,
-          grand_total: total,
-          payment_method: "Pay on delivery (Paystack coming soon)",
-          shipping_recipient: parsed.data.recipient,
-          shipping_phone: parsed.data.phone,
-          shipping_street: parsed.data.street,
-          shipping_city: parsed.data.city,
-          shipping_state: parsed.data.state,
+          recipient: parsed.data.recipient,
+          phone: parsed.data.phone,
+          street: parsed.data.street,
+          city: parsed.data.city,
+          state: parsed.data.state,
           notes: parsed.data.notes ?? null,
-        })
-        .select()
-        .single();
-
-      if (error || !order) throw error ?? new Error("Order create failed");
-
-      const items = cart.items.map((i) => ({
-        order_id: order.id,
-        product_id: i.productId,
-        product_name: i.name,
-        product_slug: i.slug,
-        product_image: i.image,
-        unit_price: i.price,
-        qty: i.qty,
-      }));
-      const { error: itemsErr } = await supabase.from("order_items").insert(items);
-      if (itemsErr) throw itemsErr;
-
+        },
+      });
       cart.clear();
-      router.navigate({ to: "/order/$id/confirmation", params: { id: order.id } });
+      router.navigate({ to: "/order/$id/confirmation", params: { id: result.orderId } });
     } catch (err) {
       console.error(err);
-      toast.error("Could not place order. Please try again.");
+      toast.error(err instanceof Error ? err.message : "Could not place order. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -108,7 +88,7 @@ function CheckoutPage() {
     <SiteLayout>
       <div className="container-page py-12 md:py-20">
         <h1 className="font-display text-4xl md:text-5xl text-plum mb-10">Checkout</h1>
-        <form onSubmit={placeOrder} className="grid lg:grid-cols-[1fr_400px] gap-12">
+        <form onSubmit={handleSubmit} className="grid lg:grid-cols-[1fr_400px] gap-12">
           <div className="space-y-8">
             <section>
               <h2 className="eyebrow text-gold mb-4">Contact</h2>

@@ -510,6 +510,18 @@ export type Database = {
         Args: { _product: string; _user: string }
         Returns: boolean
       }
+      redeem_coupon: {
+        Args: { _code: string }
+        Returns: {
+          code: string
+          discount_type: string
+          expires_at: string
+          id: string
+          usage_limit: number
+          used_count: number
+          value: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "customer"
