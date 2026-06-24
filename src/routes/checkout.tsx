@@ -1,11 +1,12 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/SiteLayout";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { formatNaira } from "@/lib/format";
+import { placeOrder } from "@/lib/checkout.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/checkout")({
