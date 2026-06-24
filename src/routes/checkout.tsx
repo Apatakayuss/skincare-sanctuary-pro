@@ -88,7 +88,7 @@ function CheckoutPage() {
     <SiteLayout>
       <div className="container-page py-12 md:py-20">
         <h1 className="font-display text-4xl md:text-5xl text-plum mb-10">Checkout</h1>
-        <form onSubmit={placeOrder} className="grid lg:grid-cols-[1fr_400px] gap-12">
+        <form onSubmit={handleSubmit} className="grid lg:grid-cols-[1fr_400px] gap-12">
           <div className="space-y-8">
             <section>
               <h2 className="eyebrow text-gold mb-4">Contact</h2>
