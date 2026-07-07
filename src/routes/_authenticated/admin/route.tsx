@@ -5,6 +5,8 @@ import { SiteLayout } from "@/components/SiteLayout";
 const NAV = [
   { to: "/admin", label: "Overview" },
   { to: "/admin/products", label: "Products" },
+  { to: "/admin/categories", label: "Categories" },
+  { to: "/admin/brands", label: "Brands" },
   { to: "/admin/orders", label: "Orders" },
   { to: "/admin/customers", label: "Customers" },
   { to: "/admin/reviews", label: "Reviews" },
@@ -29,7 +31,7 @@ function AdminLayout() {
           <p className="eyebrow text-gold mb-4">Admin</p>
           <nav className="space-y-1.5 text-sm">
             {NAV.map((n) => (
-              <Link key={n.to} to={n.to} className={`block py-1.5 ${path === n.to ? "text-gold font-semibold" : "text-charcoal hover:text-plum"}`}>
+              <Link key={n.to} to={n.to} className={`block py-1.5 ${path === n.to || (n.to !== "/admin" && path.startsWith(n.to)) ? "text-gold font-semibold" : "text-charcoal hover:text-plum"}`}>
                 {n.label}
               </Link>
             ))}
