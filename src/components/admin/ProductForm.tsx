@@ -20,7 +20,7 @@ export function ProductForm({
   initial: ProductInput;
   brands: Option[];
   categories: Option[];
-  onSubmit: (values: ProductInput) => Promise<void> | void;
+  onSubmit: (values: ProductInput) => Promise<unknown> | unknown;
   submitting: boolean;
   submitLabel: string;
 }) {
