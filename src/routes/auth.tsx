@@ -29,14 +29,18 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin + "/welcome", data: { full_name: name } },
         });
         if (error) throw error;
-        toast.success("Account created — welcome.");
-        router.navigate({ to: "/welcome" });
+        if (data.session) {
+          toast.success("Account created — welcome.");
+          router.navigate({ to: "/welcome" });
+        } else {
+          toast.success("Check your email to confirm your account.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;

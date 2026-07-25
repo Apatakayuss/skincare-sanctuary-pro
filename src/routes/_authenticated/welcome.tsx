@@ -77,7 +77,7 @@ function WelcomePage() {
       return;
     }
     toast.success("Profile saved — welcome to Alluring.");
-    router.navigate({ to: "/shop" });
+    router.navigate({ to: "/" });
   }
 
   return (
@@ -173,7 +173,7 @@ function WelcomePage() {
             >
               {busy ? "Saving…" : "Save & continue"}
             </button>
-            <Link to="/shop" className="text-xs uppercase tracking-widest text-muted-foreground underline">
+            <Link to="/" className="text-xs uppercase tracking-widest text-muted-foreground underline">
               Skip for now
             </Link>
           </div>
