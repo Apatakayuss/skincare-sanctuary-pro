@@ -32,16 +32,17 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin, data: { full_name: name } },
+          options: { emailRedirectTo: window.location.origin + "/welcome", data: { full_name: name } },
         });
         if (error) throw error;
         toast.success("Account created — welcome.");
+        router.navigate({ to: "/welcome" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back.");
+        router.navigate({ to: "/account" });
       }
-      router.navigate({ to: "/account" });
     } catch (err: any) {
       toast.error(err.message ?? "Something went wrong");
     } finally {
@@ -50,10 +51,10 @@ function AuthPage() {
   }
 
   async function google() {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/welcome" });
     if (result.error) { toast.error("Google sign-in failed"); return; }
     if (result.redirected) return;
-    router.navigate({ to: "/account" });
+    router.navigate({ to: "/welcome" });
   }
 
   async function forgotPw() {

@@ -21,6 +21,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAccountRouteRouteImport } from './routes/_authenticated/account/route'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
@@ -96,6 +97,11 @@ const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/category/$slug',
   path: '/category/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   id: '/admin',
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/account': typeof AuthenticatedAccountRouteRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/account/addresses': typeof AuthenticatedAccountAddressesRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/account/addresses': typeof AuthenticatedAccountAddressesRoute
@@ -261,6 +269,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/_authenticated/account': typeof AuthenticatedAccountRouteRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/_authenticated/account/addresses': typeof AuthenticatedAccountAddressesRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/account'
     | '/admin'
+    | '/welcome'
     | '/category/$slug'
     | '/product/$slug'
     | '/account/addresses'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/search'
     | '/shop'
+    | '/welcome'
     | '/category/$slug'
     | '/product/$slug'
     | '/account/addresses'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/_authenticated/account'
     | '/_authenticated/admin'
+    | '/_authenticated/welcome'
     | '/category/$slug'
     | '/product/$slug'
     | '/_authenticated/account/addresses'
@@ -468,6 +480,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/category/$slug'
       preLoaderRoute: typeof CategorySlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/welcome': {
+      id: '/_authenticated/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof AuthenticatedWelcomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
@@ -650,11 +669,13 @@ const AuthenticatedAdminRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRouteRoute: typeof AuthenticatedAccountRouteRouteWithChildren
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
+  AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRouteRoute: AuthenticatedAccountRouteRouteWithChildren,
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
+  AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
