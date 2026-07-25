@@ -173,7 +173,7 @@ function WelcomePage() {
             >
               {busy ? "Saving…" : "Save & continue"}
             </button>
-            <Link to="/shop" className="text-xs uppercase tracking-widest text-muted-foreground underline">
+            <Link to="/" className="text-xs uppercase tracking-widest text-muted-foreground underline">
               Skip for now
             </Link>
           </div>
