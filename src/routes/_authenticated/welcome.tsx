@@ -77,7 +77,7 @@ function WelcomePage() {
       return;
     }
     toast.success("Profile saved — welcome to Alluring.");
-    router.navigate({ to: "/shop" });
+    router.navigate({ to: "/" });
   }
 
   return (
