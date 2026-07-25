@@ -261,7 +261,7 @@ function Home() {
                 search={{ goal: c.slug }}
                 className="border border-cream/20 p-6 text-center hover:border-gold hover:bg-plum-light transition-colors"
               >
-                <p className="font-display text-xl">{c.label}</p>
+                <p className="font-display text-xl break-words">{c.label}</p>
               </Link>
             ))}
           </div>
