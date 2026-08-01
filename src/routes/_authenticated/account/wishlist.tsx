@@ -15,7 +15,7 @@ function WishlistPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("wishlists")
-        .select("product:products(id, slug, name, price, compare_at_price, avg_rating, review_count, brand:brands(name), product_images(url))")
+        .select("product:products(id, slug, name, price, compare_at_price, avg_rating, review_count, stock_qty, brand:brands(name), product_images(url))")
         .eq("user_id", user!.id);
       return (data ?? []).map((r) => r.product).filter(Boolean);
     },

@@ -54,7 +54,7 @@ function ShopPage() {
     queryFn: async () => {
       let q = supabase
         .from("products")
-        .select("id, slug, name, price, compare_at_price, avg_rating, review_count, skincare_goals, skin_types, brand:brands(name, slug), category:categories(slug), product_images(url)")
+        .select("id, slug, name, price, compare_at_price, avg_rating, review_count, stock_qty, skincare_goals, skin_types, brand:brands(name, slug), category:categories(slug), product_images(url)")
         .eq("is_active", true);
 
       if (search.q) q = q.ilike("name", `%${search.q}%`);

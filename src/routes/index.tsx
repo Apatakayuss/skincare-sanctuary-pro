@@ -42,7 +42,7 @@ function Home() {
     queryFn: async () => {
       const { data } = await supabase
         .from("products")
-        .select("id, slug, name, price, compare_at_price, avg_rating, review_count, brand:brands(name), product_images(url)")
+        .select("id, slug, name, price, compare_at_price, avg_rating, review_count, stock_qty, brand:brands(name), product_images(url)")
         .eq("is_active", true)
         .eq("is_featured", true)
         .limit(8);
@@ -55,7 +55,7 @@ function Home() {
     queryFn: async () => {
       const { data } = await supabase
         .from("products")
-        .select("id, slug, name, price, compare_at_price, avg_rating, review_count, brand:brands(name), product_images(url)")
+        .select("id, slug, name, price, compare_at_price, avg_rating, review_count, stock_qty, brand:brands(name), product_images(url)")
         .eq("is_active", true)
         .eq("is_bestseller", true)
         .limit(4);
