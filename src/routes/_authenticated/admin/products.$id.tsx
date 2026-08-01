@@ -113,6 +113,41 @@ function ProductImages({ productId }: { productId: string }) {
     },
   });
 
+  async function uploadFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    let nextSort = images.length ? Math.max(...images.map((i) => i.sort_order)) + 1 : 0;
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image`);
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 5MB`);
+        continue;
+      }
+      const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `${productId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("product-images")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) {
+        toast.error(upErr.message);
+        continue;
+      }
+      const { error } = await supabase.from("product_images").insert({
+        product_id: productId,
+        url: `/api/public/product-image/${path}`,
+        alt: file.name.replace(/\.[^.]+$/, ""),
+        sort_order: nextSort++,
+      });
+      if (error) toast.error(error.message);
+    }
+    setUploading(false);
+    toast.success("Upload complete");
+    qc.invalidateQueries({ queryKey: ["admin-product-images", productId] });
+  }
+
   async function addImage(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = url.trim();
