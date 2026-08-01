@@ -99,6 +99,7 @@ function ProductImages({ productId }: { productId: string }) {
   const [url, setUrl] = useState("");
   const [alt, setAlt] = useState("");
   const [adding, setAdding] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const { data: images = [] } = useQuery({
     queryKey: ["admin-product-images", productId],
