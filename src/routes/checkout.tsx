@@ -25,12 +25,25 @@ const schema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+type SavedAddress = {
+  id: string;
+  label: string | null;
+  recipient: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  is_default: boolean;
+};
+
 function CheckoutPage() {
   const cart = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const submitOrder = useServerFn(placeOrder);
   const [submitting, setSubmitting] = useState(false);
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [form, setForm] = useState({
     email: user?.email ?? "",
     recipient: "",
@@ -41,8 +54,62 @@ function CheckoutPage() {
     notes: "",
   });
 
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const [{ data: profile }, { data: addrs }] = await Promise.all([
+        supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle(),
+        supabase
+          .from("addresses")
+          .select("id, label, recipient, phone, street, city, state, is_default")
+          .eq("user_id", user.id)
+          .order("is_default", { ascending: false })
+          .order("created_at", { ascending: false }),
+      ]);
+      if (cancelled) return;
+
+      const list = addrs ?? [];
+      setAddresses(list);
+      const pick = list.find((a) => a.is_default) ?? list[0];
+
+      setForm((f) => ({
+        ...f,
+        email: f.email || user.email || "",
+        recipient: f.recipient || pick?.recipient || profile?.full_name || "",
+        phone: f.phone || pick?.phone || profile?.phone || "",
+        street: f.street || pick?.street || "",
+        city: pick?.city ?? f.city,
+        state: pick?.state ?? f.state,
+      }));
+      if (pick) setSelectedAddressId(pick.id);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  function applyAddress(id: string) {
+    setSelectedAddressId(id);
+    if (id === "new") {
+      setForm((f) => ({ ...f, recipient: "", phone: "", street: "", city: "Lagos", state: "Lagos" }));
+      return;
+    }
+    const a = addresses.find((x) => x.id === id);
+    if (!a) return;
+    setForm((f) => ({
+      ...f,
+      recipient: a.recipient,
+      phone: a.phone,
+      street: a.street,
+      city: a.city,
+      state: a.state,
+    }));
+  }
+
   const shipping = cart.subtotal >= 30000 ? 0 : 2500;
   const total = cart.subtotal + shipping;
+
 
   if (cart.items.length === 0) {
     return (
