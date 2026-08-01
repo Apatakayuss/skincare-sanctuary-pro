@@ -21,7 +21,7 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (user) router.navigate({ to: "/account" });
+    if (user) router.navigate({ to: "/shop" });
   }, [user, router]);
 
   async function submit(e: React.FormEvent) {
@@ -45,7 +45,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back.");
-        router.navigate({ to: "/account" });
+        router.navigate({ to: "/shop" });
       }
     } catch (err: any) {
       toast.error(err.message ?? "Something went wrong");

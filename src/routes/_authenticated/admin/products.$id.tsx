@@ -99,6 +99,7 @@ function ProductImages({ productId }: { productId: string }) {
   const [url, setUrl] = useState("");
   const [alt, setAlt] = useState("");
   const [adding, setAdding] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const { data: images = [] } = useQuery({
     queryKey: ["admin-product-images", productId],
@@ -112,6 +113,41 @@ function ProductImages({ productId }: { productId: string }) {
       return data ?? [];
     },
   });
+
+  async function uploadFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    let nextSort = images.length ? Math.max(...images.map((i) => i.sort_order)) + 1 : 0;
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image`);
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 5MB`);
+        continue;
+      }
+      const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `${productId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("product-images")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) {
+        toast.error(upErr.message);
+        continue;
+      }
+      const { error } = await supabase.from("product_images").insert({
+        product_id: productId,
+        url: `/api/public/product-image/${path}`,
+        alt: file.name.replace(/\.[^.]+$/, ""),
+        sort_order: nextSort++,
+      });
+      if (error) toast.error(error.message);
+    }
+    setUploading(false);
+    toast.success("Upload complete");
+    qc.invalidateQueries({ queryKey: ["admin-product-images", productId] });
+  }
 
   async function addImage(e: React.FormEvent) {
     e.preventDefault();
@@ -175,9 +211,25 @@ function ProductImages({ productId }: { productId: string }) {
           ))}
         </ul>
       )}
-      <form onSubmit={addImage} className="grid md:grid-cols-[2fr_1fr_auto] gap-2 items-end">
+      <div className="mb-6">
+        <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Upload from your device</label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          disabled={uploading}
+          onChange={(e) => {
+            uploadFiles(e.target.files);
+            e.target.value = "";
+          }}
+          className="block w-full text-sm text-muted-foreground file:mr-4 file:border-0 file:bg-plum file:text-cream file:px-5 file:py-2.5 file:text-xs file:uppercase file:tracking-widest disabled:opacity-50"
+        />
+        <p className="text-xs text-muted-foreground mt-2">{uploading ? "Uploading…" : "JPG, PNG or WebP up to 5MB each."}</p>
+      </div>
+
+      <form onSubmit={addImage} className="grid md:grid-cols-[2fr_1fr_auto] gap-2 items-end border-t border-border pt-6">
         <div>
-          <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Image URL</label>
+          <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">…or paste an image URL</label>
           <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" className="w-full border border-border bg-cream px-3 py-2 text-sm" maxLength={2000} required />
         </div>
         <div>
@@ -188,7 +240,6 @@ function ProductImages({ productId }: { productId: string }) {
           {adding ? "Adding…" : "Add image"}
         </button>
       </form>
-      <p className="text-xs text-muted-foreground mt-3">Paste an image URL from your CDN or an image host (e.g. Unsplash). Direct file uploads aren't enabled on this workspace.</p>
     </section>
   );
 }
