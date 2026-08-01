@@ -164,7 +164,42 @@ function CheckoutPage() {
             </section>
             <section>
               <h2 className="eyebrow text-gold mb-4">Delivery address</h2>
+              {addresses.length > 0 && (
+                <div className="mb-6 space-y-3">
+                  {addresses.map((a) => (
+                    <label
+                      key={a.id}
+                      className={`flex gap-3 items-start border p-4 cursor-pointer ${selectedAddressId === a.id ? "border-gold bg-cream-dark/40" : "border-border"}`}
+                    >
+                      <input
+                        type="radio"
+                        name="saved-address"
+                        className="mt-1 accent-plum"
+                        checked={selectedAddressId === a.id}
+                        onChange={() => applyAddress(a.id)}
+                      />
+                      <span className="text-sm">
+                        {a.label && <span className="block eyebrow text-gold">{a.label}</span>}
+                        <span className="block text-plum">{a.recipient}</span>
+                        <span className="block text-charcoal">{a.street}, {a.city}, {a.state}</span>
+                        <span className="block text-xs text-muted-foreground mt-1">{a.phone}</span>
+                      </span>
+                    </label>
+                  ))}
+                  <label className={`flex gap-3 items-center border p-4 cursor-pointer ${selectedAddressId === "new" ? "border-gold bg-cream-dark/40" : "border-border"}`}>
+                    <input
+                      type="radio"
+                      name="saved-address"
+                      className="accent-plum"
+                      checked={selectedAddressId === "new"}
+                      onChange={() => applyAddress("new")}
+                    />
+                    <span className="text-sm text-plum">Use a new address</span>
+                  </label>
+                </div>
+              )}
               <div className="grid sm:grid-cols-2 gap-4">
+
                 <Field label="Full name" required value={form.recipient} onChange={(v) => setForm({ ...form, recipient: v })} />
                 <Field label="Phone" required value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
                 <Field label="Street address" required className="sm:col-span-2" value={form.street} onChange={(v) => setForm({ ...form, street: v })} />
