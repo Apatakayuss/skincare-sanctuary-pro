@@ -62,7 +62,7 @@ function ProductPage() {
       if (!product) return [];
       const { data } = await supabase
         .from("products")
-        .select("id, slug, name, price, compare_at_price, avg_rating, review_count, brand:brands(name), product_images(url)")
+        .select("id, slug, name, price, compare_at_price, avg_rating, review_count, stock_qty, brand:brands(name), product_images(url)")
         .eq("is_active", true)
         .eq("category_id", product.category_id!)
         .neq("id", product.id)
