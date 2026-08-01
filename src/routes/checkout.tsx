@@ -1,5 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -24,12 +25,25 @@ const schema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+type SavedAddress = {
+  id: string;
+  label: string | null;
+  recipient: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  is_default: boolean;
+};
+
 function CheckoutPage() {
   const cart = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const submitOrder = useServerFn(placeOrder);
   const [submitting, setSubmitting] = useState(false);
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [form, setForm] = useState({
     email: user?.email ?? "",
     recipient: "",
@@ -40,8 +54,62 @@ function CheckoutPage() {
     notes: "",
   });
 
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const [{ data: profile }, { data: addrs }] = await Promise.all([
+        supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle(),
+        supabase
+          .from("addresses")
+          .select("id, label, recipient, phone, street, city, state, is_default")
+          .eq("user_id", user.id)
+          .order("is_default", { ascending: false })
+          .order("created_at", { ascending: false }),
+      ]);
+      if (cancelled) return;
+
+      const list = addrs ?? [];
+      setAddresses(list);
+      const pick = list.find((a) => a.is_default) ?? list[0];
+
+      setForm((f) => ({
+        ...f,
+        email: f.email || user.email || "",
+        recipient: f.recipient || pick?.recipient || profile?.full_name || "",
+        phone: f.phone || pick?.phone || profile?.phone || "",
+        street: f.street || pick?.street || "",
+        city: pick?.city ?? f.city,
+        state: pick?.state ?? f.state,
+      }));
+      if (pick) setSelectedAddressId(pick.id);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  function applyAddress(id: string) {
+    setSelectedAddressId(id);
+    if (id === "new") {
+      setForm((f) => ({ ...f, recipient: "", phone: "", street: "", city: "Lagos", state: "Lagos" }));
+      return;
+    }
+    const a = addresses.find((x) => x.id === id);
+    if (!a) return;
+    setForm((f) => ({
+      ...f,
+      recipient: a.recipient,
+      phone: a.phone,
+      street: a.street,
+      city: a.city,
+      state: a.state,
+    }));
+  }
+
   const shipping = cart.subtotal >= 30000 ? 0 : 2500;
   const total = cart.subtotal + shipping;
+
 
   if (cart.items.length === 0) {
     return (
@@ -96,7 +164,42 @@ function CheckoutPage() {
             </section>
             <section>
               <h2 className="eyebrow text-gold mb-4">Delivery address</h2>
+              {addresses.length > 0 && (
+                <div className="mb-6 space-y-3">
+                  {addresses.map((a) => (
+                    <label
+                      key={a.id}
+                      className={`flex gap-3 items-start border p-4 cursor-pointer ${selectedAddressId === a.id ? "border-gold bg-cream-dark/40" : "border-border"}`}
+                    >
+                      <input
+                        type="radio"
+                        name="saved-address"
+                        className="mt-1 accent-plum"
+                        checked={selectedAddressId === a.id}
+                        onChange={() => applyAddress(a.id)}
+                      />
+                      <span className="text-sm">
+                        {a.label && <span className="block eyebrow text-gold">{a.label}</span>}
+                        <span className="block text-plum">{a.recipient}</span>
+                        <span className="block text-charcoal">{a.street}, {a.city}, {a.state}</span>
+                        <span className="block text-xs text-muted-foreground mt-1">{a.phone}</span>
+                      </span>
+                    </label>
+                  ))}
+                  <label className={`flex gap-3 items-center border p-4 cursor-pointer ${selectedAddressId === "new" ? "border-gold bg-cream-dark/40" : "border-border"}`}>
+                    <input
+                      type="radio"
+                      name="saved-address"
+                      className="accent-plum"
+                      checked={selectedAddressId === "new"}
+                      onChange={() => applyAddress("new")}
+                    />
+                    <span className="text-sm text-plum">Use a new address</span>
+                  </label>
+                </div>
+              )}
               <div className="grid sm:grid-cols-2 gap-4">
+
                 <Field label="Full name" required value={form.recipient} onChange={(v) => setForm({ ...form, recipient: v })} />
                 <Field label="Phone" required value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
                 <Field label="Street address" required className="sm:col-span-2" value={form.street} onChange={(v) => setForm({ ...form, street: v })} />
